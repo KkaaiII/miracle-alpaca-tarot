@@ -3,270 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奇蹟羊駝塔羅 Miracle Alpaca Tarot</title>
+    <title>奇蹟羊駝塔羅 | Miracle Alpaca Tarot</title>
+    <!-- 引入神祕學羅馬字體與優雅黑體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold: #d4a373;
-            --dark-bg: #0f111a;
-            --card-bg: #1a1d2e;
+            --gold: #e5ba73;
+            --gold-light: #f5eedc;
+            --bg-dark: #0a0c16;
+            --glass: rgba(20, 24, 46, 0.65);
+            --glass-border: rgba(229, 186, 115, 0.15);
         }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
         body {
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            background-color: var(--dark-bg);
-            color: #f4f4f6;
             margin: 0;
             padding: 0;
+            background-color: var(--bg-dark);
+            color: #f4f4f7;
+            font-family: 'Noto Sans TC', sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 30%, #1e2238 0%, #0f111a 70%);
+            overflow-x: hidden;
+            /* 神祕深邃的渐层夜空背景 */
+            background-image: 
+                radial-gradient(circle at 50% 20%, #1a1e36 0%, #0a0c16 80%);
         }
+
+        /* 背景動態星空畫布 */
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1000px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 標頭視覺排版 */
         header {
             text-align: center;
-            margin-top: 40px;
-            margin-bottom: 20px;
+            margin-bottom: 40px;
         }
+
         header h1 {
+            font-family: 'Cinzel', 'Noto Sans TC', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
             color: var(--gold);
-            font-size: 2.5rem;
             margin: 0 0 10px 0;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(212, 163, 115, 0.3);
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(229, 186, 115, 0.35);
         }
+
         header p {
-            color: #8f94a5;
+            color: #9ba1b6;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
             margin: 0;
-            font-size: 1rem;
+            font-weight: 300;
         }
-        .table-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+
+        /* UX 占卜儀式感：問題輸入區 */
+        .ritual-section {
             width: 100%;
-            max-width: 800px;
+            max-width: 500px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 20px;
-            box-sizing: border-box;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+            text-align: center;
         }
-        /* 3D 卡牌容器 */
-        .card-stage {
+
+        .ritual-section label {
+            display: block;
+            color: var(--gold-light);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .input-query {
+            width: 100%;
+            background: rgba(10, 12, 22, 0.6);
+            border: 1px solid rgba(229, 186, 115, 0.3);
+            border-radius: 10px;
+            padding: 12px 15px;
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-query:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(229, 186, 115, 0.2);
+        }
+
+        /* 牌矩陣舞台 */
+        .board-stage {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            min-height: 330px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        /* 3D 卡牌外殼 */
+        .card-container {
             width: 180px;
             height: 300px;
-            perspective: 1000px;
-            margin: 30px 0;
+            perspective: 1200px;
+            position: relative;
         }
+
         .tarot-card {
             width: 100%;
             height: 100%;
-            position: relative;
+            position: absolute;
             transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
             cursor: pointer;
         }
+
         .tarot-card.flipped {
             transform: rotateY(180deg);
         }
+
+        /* 卡牌正反面共用樣式 (極致排版與雙線邊框) */
         .card-face {
             position: absolute;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
             border-radius: 16px;
-            border: 2px solid var(--gold);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             padding: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
         }
-        /* 卡牌背面 */
+
+        /* 奢華神祕卡背 */
         .card-back {
-            background: linear-gradient(135deg, #1a1d2e 0%, #252942 100%);
-            color: var(--gold);
+            background: linear-gradient(135deg, #111424 0%, #1d223d 100%);
+            border: 2px solid var(--gold);
         }
-        .card-back .pattern {
-            border: 1px dashed rgba(212, 163, 115, 0.4);
-            width: 90%;
-            height: 94%;
-            border-radius: 12px;
+
+        .card-back .inner-frame {
+            width: 100%;
+            height: 100%;
+            border: 1px dashed rgba(229, 186, 115, 0.4);
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
-        .card-back .alpaca-icon {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 0 10px rgba(212,163,115,0.2));
+
+        .card-back .geometry-line {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 1px solid rgba(229, 186, 115, 0.08);
+            border-radius: 50%;
         }
-        /* 卡牌正面 */
+
+        .card-back .alpaca-avatar {
+            font-size: 4.5rem;
+            filter: drop-shadow(0 0 15px rgba(229, 186, 115, 0.3));
+            z-index: 1;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* 優雅白金卡正片 */
         .card-front {
-            background-color: #ffffff;
-            color: #1a1d2e;
+            background: linear-gradient(180deg, #ffffff 0%, #f7f5f0 100%);
+            border: 3px solid var(--gold);
             transform: rotateY(180deg);
-            justify-content: space-between;
+            color: #1a1c24;
         }
-        .card-front .card-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #a67c52;
-            border-bottom: 2px solid #e6ccb2;
+
+        .card-front .card-header-no {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            color: #8a7355;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .card-front .card-illustration {
+            font-size: 5.5rem;
+            margin: 20px 0;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.15));
+        }
+
+        .card-front .card-footer-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #222533;
+            letter-spacing: 1px;
+            border-top: 1px solid #e0d9cc;
             width: 100%;
             text-align: center;
-            padding-bottom: 5px;
+            padding-top: 8px;
         }
-        .card-front .card-graphic {
-            font-size: 5rem;
-            margin: 20px 0;
+
+        /* 互動控制鈕 */
+        .cta-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
         }
-        .card-front .card-no {
-            font-size: 0.9rem;
-            color: #8c8c8c;
-            letter-spacing: 1px;
-        }
-        /* 按鈕與文字解析 */
-        .btn-draw {
+
+        .btn-divine {
             background: transparent;
             border: 2px solid var(--gold);
             color: var(--gold);
-            padding: 12px 35px;
+            font-family: 'Noto Sans TC', sans-serif;
             font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 30px;
+            font-weight: 700;
+            padding: 14px 40px;
+            border-radius: 40px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(212, 163, 115, 0.1);
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 4px 15px rgba(229, 186, 115, 0.1);
         }
-        .btn-draw:hover {
+
+        .btn-divine:hover {
             background: var(--gold);
-            color: var(--dark-bg);
-            box-shadow: 0 4px 20px rgba(212, 163, 115, 0.4);
+            color: var(--bg-dark);
+            box-shadow: 0 4px 25px rgba(229, 186, 115, 0.4);
             transform: translateY(-2px);
         }
-        .reading-result {
-            margin-top: 30px;
-            background: rgba(26, 29, 46, 0.6);
-            border-radius: 12px;
-            padding: 25px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid rgba(212, 163, 115, 0.15);
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s ease;
+
+        .btn-divine:active {
+            transform: translateY(1px);
         }
-        .reading-result.show {
+
+        /* 玻璃擬態高端解析面板 */
+        .result-panel {
+            width: 100%;
+            max-width: 700px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 35px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            text-align: center;
+        }
+
+        .result-panel.reveal {
             opacity: 1;
             transform: translateY(0);
         }
-        .result-title {
+
+        .result-panel h3 {
             color: var(--gold);
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            font-weight: bold;
+            font-size: 1.5rem;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+            letter-spacing: 1px;
         }
-        .result-text {
-            color: #d1d5db;
-            line-height: 1.6;
-            font-size: 0.95rem;
+
+        .result-panel p {
+            color: #d1d5e3;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            margin: 0;
+            font-weight: 300;
+            text-align: justify;
+        }
+
+        /* 微互動：卡牌漂浮慢動作動畫 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 手機響應式排版優化 (UIUX 必備) */
+        @media (max-width: 600px) {
+            header h1 { font-size: 2rem; }
+            .board-stage { gap: 20px; }
+            .card-container { width: 150px; height: 250px; }
+            .card-front .card-illustration { font-size: 4rem; }
+            .result-panel { padding: 25px; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🔮 奇蹟羊駝塔羅</h1>
-        <p>Miracle Alpaca Tarot • 靜心思考你的問題，抽取一張羊駝指引</p>
-    </header>
+    <!-- 背景動態粒子星空 -->
+    <canvas id="starCanvas"></canvas>
 
-    <div class="table-container">
-        <!-- 3D 翻牌舞台 -->
-        <div class="card-stage">
-            <div class="tarot-card" id="tarotCard" onclick="flipCard()">
-                <!-- 背面 -->
-                <div class="card-face card-back">
-                    <div class="pattern">
-                        <div class="alpaca-icon">🦙</div>
-                        <div style="font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7;">MIRACLE TAROT</div>
+    <div class="app-container">
+        <header>
+            <h1>MIRACLE ALPACA TAROT</h1>
+            <p>奇蹟羊駝塔羅 • 探索命運的毛茸茸指引</p>
+        </header>
+
+        <!-- 占卜儀式輸入框 -->
+        <div class="ritual-section">
+            <label for="queryInput">🔮 請在心中默想你的問題，並將其寫在下方：</label>
+            <input type="text" id="queryInput" class="input-query" placeholder="例如：我近期的事業運勢如何？" autocomplete="off">
+        </div>
+
+        <!-- 牌陣舞台區 -->
+        <div class="board-stage">
+            <div class="card-container">
+                <div class="tarot-card" id="tarotCard" onclick="triggerFlip()">
+                    <!-- 卡背 -->
+                    <div class="card-face card-back">
+                        <div class="inner-frame">
+                            <div class="geometry-line"></div>
+                            <div class="alpaca-avatar">🦙</div>
+                        </div>
                     </div>
-                </div>
-                <!-- 正面 -->
-                <div class="card-face card-front">
-                    <div class="card-title" id="displayTitle">愚者</div>
-                    <div class="card-graphic" id="displayGraphic">🦙🃏</div>
-                    <div class="card-no" id="displayNo">THE FOOL . 0</div>
+                    <!-- 卡正 -->
+                    <div class="card-face card-front">
+                        <div class="card-header-no" id="cardNo">THE FOOL 0</div>
+                        <div class="card-illustration" id="cardEmoji">🎒</div>
+                        <div class="card-footer-title" id="cardName">愚者</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <button class="btn-draw" onclick="drawCard()">點擊抽取占卜卡</button>
+        <div class="cta-group">
+            <button class="btn-divine" onclick="executeDivination()">抽取命運指引</button>
+        </div>
 
-        <!-- 牌意解析顯示 -->
-        <div class="reading-result" id="resultBox">
-            <div class="result-title" id="resultTitle">牌意啟示</div>
-            <div class="result-text" id="resultText">請點擊上方按鈕，羊駝將為你叼出一張命運的塔羅牌。</div>
+        <!-- 解析面板 -->
+        <div class="result-panel" id="resultPanel">
+            <h3 id="panelTitle">羊駝啟示錄</h3>
+            <p id="panelText">當前時空尚未與宇宙共鳴。請在上方輸入你的困惑，並點擊按鈕抽取神秘的羊駝牌卡。</p>
         </div>
     </div>
 
     <script>
-        // 內建經典塔羅大阿爾克那牌組與羊駝特色解析
-        const tarotDeck = [
-            { no: "0", name: "愚者 (The Fool)", emoji: "🦙🎒", text: "象徵新的開始與自由。如同草泥馬奔馳在自由的荒野，放下心中的恐懼與包袱吧！信任你的直覺，大膽展開這段全新的冒險，奇蹟就在前方。" },
-            { no: "I", name: "魔術師 (The Magician)", emoji: "🦙✨", text: "你手中握有解決問題的所有資源與才華。這張牌顯示你具備極強的創造力與執行力，是時候把靈感轉化為現實了，羊駝會為你的魔法加持！" },
-            { no: "II", name: "女祭司 (The High Priestess)", emoji: "🦙🌙", text: "象徵潛意識與深層智慧。現在不需要急著做出外界的行動，閉上眼、靜下心，傾聽你內在的直覺。保持冷靜與冷靜觀察，答案早已在你的心中。" },
-            { no: "III", name: "皇后 (The Empress)", emoji: "🦙👑", text: "大豐收與充滿愛的象徵。代表你的生活正迎向富足與創造力的巔峰。無論在情感或是工作上，大方展現你的溫柔與熱情，美好的成果正在孕育中。" },
-            { no: "IV", name: "皇帝 (The Emperor)", emoji: "🦙🏛️", text: "象徵秩序、穩定與堅強的意志。這張牌提醒你建立清晰的條理與規範，展現你的領導力。只要按部就班、保持自律，你就擁有穩固全局的力量。" },
-            { no: "X", name: "命運之輪 (Wheel of Fortune)", emoji: "🦙🎡", text: "命運的轉折點已經來到。不論眼前的挑戰如何，轉機即將出現。順應變動、把握機會，羊駝的幸運之輪正帶著你轉向充滿希望的新篇章。" },
-            { no: "XXI", name: "世界 (The World)", emoji: "🦙🌍", text: "象徵完美的結束與圓滿。你過去的努力已經達到了完美的終點，這是一個值得慶祝的時刻。好好的享受這個和諧與成功的狀態，並準備邁向下個里程碑吧！" }
+        // 經典大阿爾克那深度神秘學語料庫
+        const alpacaTarotDeck = [
+            { no: "THE FOOL 0", name: "愚者", emoji: "🎒", text: "【象徵：新生的純真自由】你正站在全新旅程的起點。就像一隻無所畏懼的羊駝，前方是未知卻充滿草料的廣闊荒野。放下心中的得失心與社會框架吧！信任直覺、輕裝上陣，當下最不需要的就是過度算計，大膽踏出第一步，宇宙自然會為你鋪好道路。" },
+            { no: "THE MAGICIAN I", name: "魔術師", emoji: "✨", text: "【象徵：資源與意志的顯化】你手邊早已握有解決當前困境的所有工具、天賦與資源。這張牌在提示你：不要再等待『完美的時機』，你就是那個時機！發揮你的創造力與果斷力，把腦中的概念付諸實行，羊駝靈性能量正高強地站在你身後相挺。" },
+            { no: "THE HIGH PRIESTESS II", name: "女祭司", emoji: "🌙", text: "【象徵：內在智慧與消極沉澱】現在外界的雜音太多，不急著做出任何世俗的承諾或重大決定。女祭司羊駝端坐在聖殿門前，提醒你向內觀照。保持冷靜、冷眼旁觀。信任你浮現的第一直覺或夢境，那些沒說出口的祕密與局勢發展，你其實早已心知肚明。" },
+            { no: "THE EMPRESS III", name: "皇后", emoji: "👑", text: "【象徵：富足、孕育與美學體驗】生活即將迎來豐盛的收穫期。無論是情感的滋潤、創意的誕生或是物質的豐裕，當前局勢正處於極佳的孕育狀態。多去接觸大自然、感受美的事物。用溫柔且包容的心態去對待身邊的人事物，美好的結果正自然而然地發生。" },
+            { no: "THE EMPEROR IV", name: "皇帝", emoji: "🏛️", text: "【象徵：秩序、掌控力與穩固根基】當前狀況需要你展現高度的自律與條理。不能再散漫下去了，皇帝羊駝要求你劃清界線、制定清晰的規則。不管是工作還是生活，建立結構與長遠規劃是核心。展現你的肩膀與主導權，你有能力建立屬於自己的穩固帝國。" },
+            { no: "WHEEL OF FORTUNE X", name: "命運之輪", emoji: "🎡", text: "【象徵：不可抗力的轉折與機緣】齒輪已經開始轉動，一個突如其來的轉機或巧合即將打破現狀。這不是人為能強求的，而是命運的週期到了。順應這個變化，不要逆風而行。壞事即將過去，好事正在進場，大方接受宇宙為你安排的驚喜劇本。" },
+            { no: "THE WORLD XXI", name: "世界", emoji: "🌍", text: "【象徵：階段性的完美圓滿】恭喜你！某個讓你懸著心的巨大挑戰或階段性任務，已經達到了最和諧、最圓滿的終點。這是一個功德圓滿的時刻，生活在這一點上達成了完美的平衡。好好享受這份充實與成功的喜悅，並帶著豐盛的經驗準備邁向更高的維度。" }
         ];
 
-        let isFlipped = false;
-        let currentCard = null;
+        let hasDrawn = false;
 
-        function drawCard() {
-            const cardElement = document.getElementById('tarotCard');
-            const resultBox = document.getElementById('resultBox');
-            
-            // 先翻回背面
-            cardElement.classList.remove('flipped');
-            resultBox.classList.remove('show');
-            isFlipped = false;
-
-            // 洗牌隨機抽取
-            setTimeout(() => {
-                const randomIndex = Math.floor(Math.random() * tarotDeck.length);
-                currentCard = tarotDeck[randomIndex];
-
-                // 替換正面資料
-                document.getElementById('displayTitle').innerText = currentCard.name;
-                document.getElementById('displayGraphic').innerText = currentCard.emoji;
-                document.getElementById('displayNo').innerText = `NO. ${currentCard.no}`;
-                
-                // 觸發翻牌動畫
-                cardElement.classList.add('flipped');
-                isFlipped = true;
-
-                // 延遲顯示文字解析
-                setTimeout(() => {
-                    document.getElementById('resultTitle').innerText = `🔮 抽卡結果：${currentCard.name}`;
-                    document.getElementById('resultText').innerText = currentCard.text;
-                    resultBox.classList.add('show');
-                }, 400);
-
-            }, 300); // 給予流暢的重置時間
-        }
-
-        function flipCard() {
-            // 如果已經有抽牌，允許手動點擊卡片翻轉
-            if (currentCard) {
-                const cardElement = document.getElementById('tarotCard');
-                cardElement.classList.toggle('flipped');
-                isFlipped = !isFlipped;
+        // --- Web Audio API 空靈音效合成器 (免去加載外部檔案的爆音或失效問題) ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                if (type === 'shuffle') {
+                    // 模擬微弱的洗牌、風吹沙沙聲
+                    let bufferSize = audioCtx.sampleRate * 0.2,
+                        buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+                        data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    let noise = audioCtx.createBufferSource();
+                    noise.buffer = buffer;
+                    let filter = audioCtx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 1000;
+                    let gain = audioCtx.createGain();
+                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    noise.start();
+                } else if (type === 'flip') {
+                    // 模擬空靈的水晶鐘聲
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 輕脆高音
+                    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.6);
+                }
+            } catch (e) { console.log("音效阻擋"); }
+        }
+
+        // --- 占卜主邏輯 ---
+        function executeDivination() {
+            const card = document.getElementById('tarotCard');
+            const panel = document.getElementById('resultPanel');
+            const query = document.getElementById('queryInput').value.trim();
+
+            // 1. 洗牌與重置動畫 + 播放沙沙聲
+            card.classList.remove('flipped');
+            panel.classList.remove('reveal');
+            playSound('shuffle');
+
+            // 2. 延遲抽取（模仿閉眼洗牌感）
+            setTimeout(() => {
+                const randomCard = alpacaTarotDeck[Math.floor(Math.random() * alpacaTarotDeck.length)];
+                
+                // 替換前端資料
+                document.getElementById('cardNo').innerText = randomCard.no;
+                document.getElementById('cardEmoji').innerText = randomCard.emoji;
+                document.getElementById('cardName').innerText = randomCard.name;
+
+                // 3. 翻牌動畫 + 水晶空靈音效
+                card.classList.add('flipped');
+                playSound('flip');
+                hasDrawn = true;
+
+                // 4. 解析面板優雅浮現
+                setTimeout(() => {
+                    const qPrefix = query ? `針對您所求的「${query}」，\n` : '';
+                    document.getElementById('panelTitle').innerText = `🔮 羊駝神諭：【${randomCard.name}】`;
+                    document.getElementById('panelText').innerText = `${qPrefix}${randomCard.text}`;
+                    panel.classList.add('reveal');
+                }, 450);
+
+            }, 400);
+        }
+
+        function triggerFlip() {
+            if (hasDrawn) {
+                document.getElementById('tarotCard').classList.toggle('flipped');
+                playSound('flip');
+            }
+        }
+
+        // --- Canvas 動態星空背景引擎 ---
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initStars();
+        }
+
+        function initStars() {
+            stars = [];
+            const count = Math.floor(canvas.width / 12);
+            for(let i=0; i<count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.2,
+                    alpha: Math.random(),
+                    speed: 0.01 + Math.random() * 0.02
+                });
+            }
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            stars.forEach(star => {
+                star.alpha += star.speed;
+                if(star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
+                ctx.beginPath();
+                ctx.globalAlpha = Math.abs(star.alpha);
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+            requestAnimationFrame(drawStars);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        drawStars();
     </script>
 </body>
 </html>
