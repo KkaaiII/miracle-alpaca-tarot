@@ -5,32 +5,268 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>奇蹟羊駝塔羅 Miracle Alpaca Tarot</title>
     <style>
+        :root {
+            --gold: #d4a373;
+            --dark-bg: #0f111a;
+            --card-bg: #1a1d2e;
+        }
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--dark-bg);
+            color: #f4f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 30%, #1e2238 0%, #0f111a 70%);
+        }
+        header {
             text-align: center;
-            background-color: #fcf9f2;
-            color: #333;
-            padding: 50px;
+            margin-top: 40px;
+            margin-bottom: 20px;
         }
-        h1 {
-            color: #d4a373;
+        header h1 {
+            color: var(--gold);
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(212, 163, 115, 0.3);
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        header p {
+            color: #8f94a5;
+            margin: 0;
+            font-size: 1rem;
+        }
+        .table-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* 3D 卡牌容器 */
+        .card-stage {
+            width: 180px;
+            height: 300px;
+            perspective: 1000px;
+            margin: 30px 0;
+        }
+        .tarot-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .tarot-card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        /* 卡牌背面 */
+        .card-back {
+            background: linear-gradient(135deg, #1a1d2e 0%, #252942 100%);
+            color: var(--gold);
+        }
+        .card-back .pattern {
+            border: 1px dashed rgba(212, 163, 115, 0.4);
+            width: 90%;
+            height: 94%;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back .alpaca-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px rgba(212,163,115,0.2));
+        }
+        /* 卡牌正面 */
+        .card-front {
+            background-color: #ffffff;
+            color: #1a1d2e;
+            transform: rotateY(180deg);
+            justify-content: space-between;
+        }
+        .card-front .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #a67c52;
+            border-bottom: 2px solid #e6ccb2;
+            width: 100%;
+            text-align: center;
+            padding-bottom: 5px;
+        }
+        .card-front .card-graphic {
+            font-size: 5rem;
+            margin: 20px 0;
+        }
+        .card-front .card-no {
+            font-size: 0.9rem;
+            color: #8c8c8c;
+            letter-spacing: 1px;
+        }
+        /* 按鈕與文字解析 */
+        .btn-draw {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 163, 115, 0.1);
+            letter-spacing: 1px;
+        }
+        .btn-draw:hover {
+            background: var(--gold);
+            color: var(--dark-bg);
+            box-shadow: 0 4px 20px rgba(212, 163, 115, 0.4);
+            transform: translateY(-2px);
+        }
+        .reading-result {
+            margin-top: 30px;
+            background: rgba(26, 29, 46, 0.6);
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(212, 163, 115, 0.15);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+        .reading-result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .result-title {
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .result-text {
+            color: #d1d5db;
+            line-height: 1.6;
+            font-size: 0.95rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🦙 奇蹟羊駝塔羅</h1>
-        <h2>Miracle Alpaca Tarot</h2>
-        <p>一個結合傳統塔羅占卜與 AI 技術的互動式網頁應用程式（開發中）。</p>
-        <p>An open-source interactive web app combining traditional tarot divination with AI technology.</p>
+
+    <header>
+        <h1>🔮 奇蹟羊駝塔羅</h1>
+        <p>Miracle Alpaca Tarot • 靜心思考你的問題，抽取一張羊駝指引</p>
+    </header>
+
+    <div class="table-container">
+        <!-- 3D 翻牌舞台 -->
+        <div class="card-stage">
+            <div class="tarot-card" id="tarotCard" onclick="flipCard()">
+                <!-- 背面 -->
+                <div class="card-face card-back">
+                    <div class="pattern">
+                        <div class="alpaca-icon">🦙</div>
+                        <div style="font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7;">MIRACLE TAROT</div>
+                    </div>
+                </div>
+                <!-- 正面 -->
+                <div class="card-face card-front">
+                    <div class="card-title" id="displayTitle">愚者</div>
+                    <div class="card-graphic" id="displayGraphic">🦙🃏</div>
+                    <div class="card-no" id="displayNo">THE FOOL . 0</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-draw" onclick="drawCard()">點擊抽取占卜卡</button>
+
+        <!-- 牌意解析顯示 -->
+        <div class="reading-result" id="resultBox">
+            <div class="result-title" id="resultTitle">牌意啟示</div>
+            <div class="result-text" id="resultText">請點擊上方按鈕，羊駝將為你叼出一張命運的塔羅牌。</div>
+        </div>
     </div>
+
+    <script>
+        // 內建經典塔羅大阿爾克那牌組與羊駝特色解析
+        const tarotDeck = [
+            { no: "0", name: "愚者 (The Fool)", emoji: "🦙🎒", text: "象徵新的開始與自由。如同草泥馬奔馳在自由的荒野，放下心中的恐懼與包袱吧！信任你的直覺，大膽展開這段全新的冒險，奇蹟就在前方。" },
+            { no: "I", name: "魔術師 (The Magician)", emoji: "🦙✨", text: "你手中握有解決問題的所有資源與才華。這張牌顯示你具備極強的創造力與執行力，是時候把靈感轉化為現實了，羊駝會為你的魔法加持！" },
+            { no: "II", name: "女祭司 (The High Priestess)", emoji: "🦙🌙", text: "象徵潛意識與深層智慧。現在不需要急著做出外界的行動，閉上眼、靜下心，傾聽你內在的直覺。保持冷靜與冷靜觀察，答案早已在你的心中。" },
+            { no: "III", name: "皇后 (The Empress)", emoji: "🦙👑", text: "大豐收與充滿愛的象徵。代表你的生活正迎向富足與創造力的巔峰。無論在情感或是工作上，大方展現你的溫柔與熱情，美好的成果正在孕育中。" },
+            { no: "IV", name: "皇帝 (The Emperor)", emoji: "🦙🏛️", text: "象徵秩序、穩定與堅強的意志。這張牌提醒你建立清晰的條理與規範，展現你的領導力。只要按部就班、保持自律，你就擁有穩固全局的力量。" },
+            { no: "X", name: "命運之輪 (Wheel of Fortune)", emoji: "🦙🎡", text: "命運的轉折點已經來到。不論眼前的挑戰如何，轉機即將出現。順應變動、把握機會，羊駝的幸運之輪正帶著你轉向充滿希望的新篇章。" },
+            { no: "XXI", name: "世界 (The World)", emoji: "🦙🌍", text: "象徵完美的結束與圓滿。你過去的努力已經達到了完美的終點，這是一個值得慶祝的時刻。好好的享受這個和諧與成功的狀態，並準備邁向下個里程碑吧！" }
+        ];
+
+        let isFlipped = false;
+        let currentCard = null;
+
+        function drawCard() {
+            const cardElement = document.getElementById('tarotCard');
+            const resultBox = document.getElementById('resultBox');
+            
+            // 先翻回背面
+            cardElement.classList.remove('flipped');
+            resultBox.classList.remove('show');
+            isFlipped = false;
+
+            // 洗牌隨機抽取
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * tarotDeck.length);
+                currentCard = tarotDeck[randomIndex];
+
+                // 替換正面資料
+                document.getElementById('displayTitle').innerText = currentCard.name;
+                document.getElementById('displayGraphic').innerText = currentCard.emoji;
+                document.getElementById('displayNo').innerText = `NO. ${currentCard.no}`;
+                
+                // 觸發翻牌動畫
+                cardElement.classList.add('flipped');
+                isFlipped = true;
+
+                // 延遲顯示文字解析
+                setTimeout(() => {
+                    document.getElementById('resultTitle').innerText = `🔮 抽卡結果：${currentCard.name}`;
+                    document.getElementById('resultText').innerText = currentCard.text;
+                    resultBox.classList.add('show');
+                }, 400);
+
+            }, 300); // 給予流暢的重置時間
+        }
+
+        function flipCard() {
+            // 如果已經有抽牌，允許手動點擊卡片翻轉
+            if (currentCard) {
+                const cardElement = document.getElementById('tarotCard');
+                cardElement.classList.toggle('flipped');
+                isFlipped = !isFlipped;
+            }
+        }
+    </script>
 </body>
 </html>
